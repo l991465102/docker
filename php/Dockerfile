@@ -1,15 +1,19 @@
-FROM php:7.2-cli
-RUN pecl install redis-4.0.1 \
-&& pecl install xdebug-2.6.0 \
-&& pecl install swoole \
-&& docker-php-ext-enable redis xdebug swoole \
-&& docker-php-ext-configure gd --with-png-dir --with-jpeg-dir --with-freetype-dir\
-&& docker-php-ext-install gd
+FROM lzw7758/alpine-php-swoole-dev
+MAINTAINER lzw7758 <liuzhiwei@lzw7758.cn>
 
-RUN docker-php-ext-install mysqli
-RUN docker-php-ext-install pdo_mysql
+#install composer
+ENV COMPOSER_ALLOW_SUPERUSER 1
+RUN curl -sS https://getcomposer.org/installer | php && \
+mv composer.phar /usr/local/bin/composer && \
+composer self-update --clean-backups
 
 COPY . /usr/src/myapp
 WORKDIR /usr/src/myapp
 
-EXPOSE 9501
+#set China timezone
+RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+echo 'Asia/Shanghai' > /etc/timezone && \
+echo "[Date]\ndate.timezone=Asia/Shanghai" > /usr/local/etc/php/conf.d/timezone.ini
+
+EXPOSE 8080
+CMD ["php", "-v"]
